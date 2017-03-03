@@ -6,13 +6,14 @@ Pod::Spec.new do |spec|
   spec.license      = 'MIT'
   spec.authors      = { 'Christoffer Lejdborg' => 'hello@9muses.se', 'Tommaso Madonia' => 'tommaso@madonia.me' }
   
-  spec.source       = { :git => 'https://github.com/Lejdborg/NMSSH.git', :tag => spec.version.to_s }
+  spec.source       = { :git => 'https://github.com/aaronvegh/NMSSH.git', :tag => spec.version.to_s }
   spec.requires_arc = true
   spec.platform = :ios
   spec.platform = :osx
 
   spec.source_files = 'NMSSH', 'NMSSH/**/*.{h,m}'
-  spec.private_header_files = 'NMSSH/Config/*.h'
+  spec.public_header_files  = 'NMSSH/*.h', 'NMSSH/Protocols/*.h', 'NMSSH/Config/NMSSHLogger.h'
+  spec.private_header_files = 'NMSSH/Config/NMSSH+Protected.h', 'NMSSH/Config/socket_helper.h'
   spec.libraries    = 'z'
   spec.framework    = 'CFNetwork'
 
