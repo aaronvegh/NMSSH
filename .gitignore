@@ -18,6 +18,10 @@ DerivedData
 xcuserdata
 
 ## Other
+*.xcuserstate
+*.xcscheme
+NMSSH.framework
+*.xcworkspacedata
 *.xccheckout
 *.moved-aside
 *.xcuserstate

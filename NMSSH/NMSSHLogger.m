@@ -10,11 +10,6 @@ typedef NS_OPTIONS(NSUInteger, NMSSHLogFlag) {
 
 @interface NMSSHLogger ()
 
-/**
- The shared logger instance, now private
- */
-+ (NMSSHLogger *)logger;
-
 #if OS_OBJECT_USE_OBJC
 @property (nonatomic, strong) dispatch_queue_t loggerQueue;
 #else
@@ -35,7 +30,7 @@ typedef NS_OPTIONS(NSUInteger, NMSSHLogFlag) {
     dispatch_once(&onceToken, ^{
         logger = [[NMSSHLogger alloc] init];
         [logger setEnabled:YES];
-        [logger setLogLevel:NMSSHLogLevelVerbose];
+        [logger setLogLevel:NMSSHLogLevelDebug];
         [logger setLogBlock:^(NMSSHLogLevel level, NSString *format) {
             NSLog(@"%@", format);
         }];
@@ -45,9 +40,21 @@ typedef NS_OPTIONS(NSUInteger, NMSSHLogFlag) {
     return logger;
 }
 
-+ (instancetype) sharedLogger
-{
-    return NMSSHLogger.logger;
+- (instancetype)init {
+    if ((self = [super init])) {
+        [self setEnabled:YES];
+#ifdef NMSSHDEBUG
+        [self setLogLevel:NMSSHLogLevelDebug];
+#else
+        [self setLogLevel:NMSSHLogLevelInfo];
+#endif
+        [self setLogBlock:^(NMSSHLogLevel level, NSString *format) {
+            NSLog(@"%@", format);
+        }];
+        [self setLoggerQueue:dispatch_queue_create("NMSSH.loggerQueue", DISPATCH_QUEUE_SERIAL)];
+    }
+
+    return self;
 }
 
 #if !(OS_OBJECT_USE_OBJC)
@@ -63,13 +70,17 @@ typedef NS_OPTIONS(NSUInteger, NMSSHLogFlag) {
 - (void)log:(NSString *)format level:(NMSSHLogLevel)level flag:(NMSSHLogFlag)flag {
     if (flag & self.logLevel && self.enabled && self.logBlock) {
         dispatch_async(self.loggerQueue, ^{
+#ifdef NMSSHDEBUG
+            self.logBlock(level, [NSString stringWithFormat:@"%s - NMSSH: %@", dispatch_queue_get_label(dispatch_get_current_queue()), format]);
+#else
             self.logBlock(level, [NSString stringWithFormat:@"NMSSH: %@", format]);
+#endif
         });
     }
 }
 
-- (void)logVerbose:(NSString *)format {
-    [self log:format level:NMSSHLogLevelVerbose flag:NMSSHLogFlagVerbose];
+- (void)logDebug:(NSString *)format {
+    [self log:format level:NMSSHLogLevelDebug flag:NMSSHLogFlagVerbose];
 }
 
 - (void)logInfo:(NSString *)format{

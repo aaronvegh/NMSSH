@@ -1,7 +1,7 @@
 #import "NMSSH.h"
 
 typedef NS_OPTIONS(NSUInteger, NMSSHLogLevel) {
-    NMSSHLogLevelVerbose = (1 << 0 | 1 << 1 | 1 << 2 | 1 << 3),
+    NMSSHLogLevelDebug   = (1 << 0 | 1 << 1 | 1 << 2 | 1 << 3),
     NMSSHLogLevelInfo    = (1 << 1 | 1 << 2 | 1 << 3),
     NMSSHLogLevelWarn    = (1 << 2 | 1 << 3),
     NMSSHLogLevelError   = (1 << 3)
@@ -21,7 +21,7 @@ typedef NS_OPTIONS(NSUInteger, NMSSHLogLevel) {
  
  @returns Shared logger
  */
-+ (instancetype) sharedLogger;
++ (instancetype) logger;
 
 /// ----------------------------------------------------------------------------
 /// @name Logger settings
@@ -40,7 +40,7 @@ typedef NS_OPTIONS(NSUInteger, NMSSHLogLevel) {
  */
 @property (nonatomic, copy) void (^logBlock)(NMSSHLogLevel level, NSString *format);
 
-/** The maximum log level */
+/** The maximum log level, default value is NMSSHLogLevelInfo */
 @property (nonatomic, assign) NMSSHLogLevel logLevel;
 
 /** Enable or disable the logging feature */
@@ -51,11 +51,11 @@ typedef NS_OPTIONS(NSUInteger, NMSSHLogLevel) {
 /// ----------------------------------------------------------------------------
 
 /**
- Log with verbose level
+ Log with debug level
 
  @param format Log message
  */
-- (void)logVerbose:(NSString *)format;
+- (void)logDebug:(NSString *)format;
 
 /**
  Log with info level

@@ -1,15 +1,20 @@
 #import "NMSSH.h"
 
+
 @class NMSSHSession;
 @protocol NMSSHChannelDelegate;
+
+FOUNDATION_EXPORT NSString *const NMSSHChannelErrorDomain;
+
 
 typedef NS_ENUM(NSInteger, NMSSHChannelError) {
     NMSSHChannelExecutionError,
     NMSSHChannelExecutionResponseError,
-    NMSSHChannelRequestPtyError,
+    NMSSHChannelPtyError,
+    NMSSHChannelSCPError,
     NMSSHChannelExecutionTimeout,
     NMSSHChannelAllocationError,
-    NMSSHChannelRequestShellError,
+    NMSSHChannelShellError,
     NMSSHChannelWriteError,
     NMSSHChannelReadError
 };
@@ -89,10 +94,13 @@ typedef NS_ENUM(NSInteger, NMSSHChannelType)  {
  command.
 
  @param command Any shell script that is available on the server
- @param error Error handler
+ @param success A block to be executed when the command is executed successfully. This block has no return value and takes a single argument: the response from the server.
+ @param failure A block to be executed when the command is executed unsuccessfully. This block has no return value and takes two arguments: the response from the server, if any, and the error that occurred.
  @returns Shell command response
  */
-- (NSString *)execute:(NSString *)command error:(NSError **)error;
+- (void)execute:(NSString *)command
+        success:(void (^)(NSString *response))success
+        failure:(void (^)(NSString *response, NSError *error))failure;
 
 /**
  Execute a shell command on the server with a given timeout.
@@ -102,11 +110,15 @@ typedef NS_ENUM(NSInteger, NMSSHChannelType)  {
  command.
 
  @param command Any shell script that is available on the server
- @param error Error handler
  @param timeout The time to wait (in seconds) before giving up on the request
+ @param success A block to be executed when the command is executed successfully. This block has no return value and takes a single argument: the response from the server.
+ @param failure A block to be executed when the command is executed unsuccessfully. This block has no return value and takes two arguments: the response from the server, if any, and the error that occurred.
  @returns Shell command response
  */
-- (NSString *)execute:(NSString *)command error:(NSError **)error timeout:(NSNumber *)timeout;
+- (void)execute:(NSString *)command
+        timeout:(NSNumber *)timeout
+        success:(void (^)(NSString *response))success
+        failure:(void (^)(NSString *response, NSError *error))failure;
 
 /// ----------------------------------------------------------------------------
 /// @name Remote shell session
@@ -122,15 +134,19 @@ typedef NS_ENUM(NSInteger, NMSSHChannelType)  {
  If requestPty is enabled request a pseudo terminal before running the
  command.
 
- @param error Error handler
+ @param success A block to be executed when the shell is started successfully. This block has no return value and takes no arguments.
+ @param failure A block to be executed when the shell is started unsuccessfully. This block has no return value and takes one argument: the error that occurred.
  @returns Shell initialization success
  */
-- (BOOL)startShell:(NSError **)error;
+- (void)startShell:(void (^)())success
+           failure:(void (^)(NSError *error))failure;
 
 /**
  Close a remote shell on an active channel.
+ 
+ @param complete A block to be executed when shell is closed. This block has no return value and takes no arguments.
  */
-- (void)closeShell;
+- (void)closeShell:(void (^)())complete;
 
 /**
  Write a command on the remote shell.
@@ -138,10 +154,13 @@ typedef NS_ENUM(NSInteger, NMSSHChannelType)  {
  If an error occurs or the connection timed out, it will return NO and populate the error object.
 
  @param command Any command that is available on the server
- @param error Error handler
+ @param success A block to be executed when the command is writed on the shell successfully. This block has no return value and takes no arguments.
+ @param failure A block to be executed when the command is writed on the shell unsuccessfully. This block has no return value and takes one argument: the error that occurred.
  @returns Shell write success
  */
-- (BOOL)write:(NSString *)command error:(NSError **)error;
+- (void)writeCommand:(NSString *)command
+             success:(void (^)())success
+             failure:(void (^)(NSError *error))failure;
 
 /**
  Write a command on the remote shell with a given timeout.
@@ -149,11 +168,15 @@ typedef NS_ENUM(NSInteger, NMSSHChannelType)  {
  If an error occurs or the connection timed out, it will return NO and populate the error object.
 
  @param command Any command that is available on the server
- @param error Error handler
  @param timeout The time to wait (in seconds) before giving up on the request
+ @param success A block to be executed when the command is writed on the shell successfully. This block has no return value and takes no arguments.
+ @param failure A block to be executed when the command is writed on the shell unsuccessfully. This block has no return value and takes one argument: the error that occurred.
  @returns Shell write success
  */
-- (BOOL)write:(NSString *)command error:(NSError **)error timeout:(NSNumber *)timeout;
+- (void)writeCommand:(NSString *)command
+             timeout:(NSNumber *)timeout
+             success:(void (^)())success
+             failure:(void (^)(NSError *error))failure;
 
 /**
  Write data on the remote shell.
@@ -161,10 +184,12 @@ typedef NS_ENUM(NSInteger, NMSSHChannelType)  {
  If an error occurs or the connection timed out, it will return NO and populate the error object.
 
  @param data Any data
- @param error Error handler
- @returns Shell write success
+ @param success A block to be executed when the data is writed on the shell successfully. This block has no return value and takes no arguments.
+ @param failure A block to be executed when the data is writed on the shell unsuccessfully. This block has no return value and takes one argument: the error that occurred. @returns Shell write success
  */
-- (BOOL)writeData:(NSData *)data error:(NSError **)error;
+- (void)writeData:(NSData *)data
+          success:(void (^)())success
+          failure:(void (^)(NSError *error))failure;
 
 /**
  Write data on the remote shell with a given timeout.
@@ -172,11 +197,15 @@ typedef NS_ENUM(NSInteger, NMSSHChannelType)  {
  If an error occurs or the connection timed out, it will return NO and populate the error object.
 
  @param data Any data
- @param error Error handler
  @param timeout The time to wait (in seconds) before giving up on the request
+ @param success A block to be executed when the data is writed on the shell successfully. This block has no return value and takes no arguments.
+ @param failure A block to be executed when the data is writed on the shell unsuccessfully. This block has no return value and takes one argument: the error that occurred.
  @returns Shell write success
  */
-- (BOOL)writeData:(NSData *)data error:(NSError **)error timeout:(NSNumber *)timeout;
+- (void)writeData:(NSData *)data
+          timeout:(NSNumber *)timeout
+          success:(void (^)())success
+          failure:(void (^)(NSError *error))failure;
 
 /**
  Request size for the remote pseudo terminal.
@@ -185,27 +214,20 @@ typedef NS_ENUM(NSInteger, NMSSHChannelType)  {
 
  @param width Width in characters for terminal
  @param height Height in characters for terminal
+ @param success A block to be executed when the shell size is requested successfully. This block has no return value and takes no arguments.
+ @param failure A block to be executed when the shell size is requested unsuccessfully. This block has no return value and takes one argument: the error that occurred.
  @returns Size change success
  */
-- (BOOL)requestSizeWidth:(NSUInteger)width height:(NSUInteger)height;
+- (void)requestSizeWidth:(NSUInteger)width
+                  height:(NSUInteger)height
+                 success:(void (^)())success
+                 failure:(void (^)(NSError *error))failure;
 
 /// ----------------------------------------------------------------------------
 /// @name SCP file transfer
 /// ----------------------------------------------------------------------------
 
 /**
- Upload a local file to a remote server.
-
- If to: specifies a directory, the file name from the original file will be
- used.
-
- @param localPath Path to a file on the local computer
- @param remotePath Path to save the file to
- @returns SCP upload success
- */
-- (BOOL)uploadFile:(NSString *)localPath to:(NSString *)remotePath;
-
-/**
  Download a remote file to local the filesystem.
 
  If to: specifies a directory, the file name from the original file will be
@@ -213,25 +235,17 @@ typedef NS_ENUM(NSInteger, NMSSHChannelType)  {
 
  @param remotePath Path to a file on the remote server
  @param localPath Path to save the file to
- @returns SCP download success
- */
-- (BOOL)downloadFile:(NSString *)remotePath to:(NSString *)localPath;
-
-/**
- Download a remote file to local the filesystem.
-
- If to: specifies a directory, the file name from the original file will be
- used.
-
- @param remotePath Path to a file on the remote server
- @param localPath Path to save the file to
- @param progress Method called periodically with number of bytes downloaded and total file size.
+ @param progress A block called periodically with number of bytes downloaded and total file size.
         Returns NO to abort.
+ @param success A block to be executed when the file is downloaded successfully. This block has no return value and takes no arguments.
+ @param failure A block to be executed when the file is downloaded unsuccessfully. This block has no return value and takes one argument: the error that occurred.
  @returns SCP download success
  */
-- (BOOL)downloadFile:(NSString *)remotePath
+- (void)downloadFile:(NSString *)remotePath
                   to:(NSString *)localPath
-            progress:(BOOL (^)(NSUInteger, NSUInteger))progress;
+            progress:(BOOL (^)(NSUInteger, NSUInteger))progress
+             success:(void (^)())success
+             failure:(void (^)(NSError *error))failure;
 
 /**
  Upload a local file to a remote server.
@@ -242,11 +256,15 @@ typedef NS_ENUM(NSInteger, NMSSHChannelType)  {
  @param localPath Path to a file on the local computer
  @param remotePath Path to save the file to
  @param progress Method called periodically with number of bytes uploaded. Returns NO to abort.
+ @param success A block to be executed when the file is uploaded successfully. This block has no return value and takes no arguments.
+ @param failure A block to be executed when the file is uploaded unsuccessfully. This block has no return value and takes one argument: the error that occurred.
  @returns SCP upload success
  */
-- (BOOL)uploadFile:(NSString *)localPath
+- (void)uploadFile:(NSString *)localPath
                 to:(NSString *)remotePath
-          progress:(BOOL (^)(NSUInteger))progress;
+          progress:(BOOL (^)(NSUInteger))progress
+           success:(void (^)())success
+           failure:(void (^)(NSError *error))failure;
 
 
 @end

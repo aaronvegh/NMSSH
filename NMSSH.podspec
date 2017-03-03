@@ -1,4 +1,5 @@
 Pod::Spec.new do |spec|
+<<<<<<< HEAD
   spec.name         = "NMSSH"
   spec.version      = "2.2.6"
   spec.summary      = "NMSSH is a clean, easy-to-use, unit tested framework for iOS and OSX that wraps libssh2."
@@ -8,13 +9,28 @@ Pod::Spec.new do |spec|
 
   spec.source       = { :git => "https://github.com/NMSSH/NMSSH.git", :tag => spec.version.to_s }
 
+=======
+  spec.name         = 'NMSSH'
+  spec.version      = '3.0.0'
+  spec.summary      = 'NMSSH is a clean, easy-to-use, unit tested framework for iOS and OSX that wraps libssh2.'
+  spec.homepage     = 'https://github.com/Lejdborg/NMSSH'
+  spec.license      = 'MIT'
+  spec.authors      = { 'Christoffer Lejdborg' => 'hello@9muses.se', 'Tommaso Madonia' => 'tommaso@madonia.me' }
+  
+  spec.source       = { :git => 'https://github.com/Lejdborg/NMSSH.git', :tag => spec.version.to_s }
+  
+>>>>>>> 87ec7bdacc053fc6bf83c827e9fb2addc6bc5f3f
   spec.requires_arc = true
   spec.platform = :ios
   spec.platform = :osx
 
   spec.source_files = 'NMSSH', 'NMSSH/**/*.{h,m}'
+<<<<<<< HEAD
   spec.public_header_files  = 'NMSSH/*.h', 'NMSSH/Protocols/*.h', 'NMSSH/Config/NMSSHLogger.h'
   spec.private_header_files = 'NMSSH/Config/NMSSH+Protected.h', 'NMSSH/Config/socket_helper.h'
+=======
+  spec.private_header_files = 'NMSSH/Config/*.h'
+>>>>>>> 87ec7bdacc053fc6bf83c827e9fb2addc6bc5f3f
   spec.libraries    = 'z'
   spec.framework    = 'CFNetwork'
 
@@ -29,7 +45,7 @@ Pod::Spec.new do |spec|
   spec.osx.public_header_files  = 'NMSSH-OSX/**/*.h'
 
   spec.xcconfig = {
-    "OTHER_LDFLAGS" => "-ObjC",
+    'OTHER_LDFLAGS' => '-ObjC',
   }
 
 end
